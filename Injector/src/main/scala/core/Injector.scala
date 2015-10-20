@@ -3,7 +3,7 @@ package core
 /**
  * Created by Mateusz on 2015-10-03.
  */
-class Injector extends Container {
+class Injector extends Container with ConstructorGetter with ContainerRepository {
 
   private var singletons = Map[Class[_], Any]()
   private var tranistents = Map[Class[_], Class[_]]()
@@ -21,7 +21,7 @@ class Injector extends Container {
   }
 
   private def instanceCreator[A](tocreate: Class[A]): A = {
-    val mainCtr = tocreate.getConstructors()(0)
+    val mainCtr = getCtr(tocreate)
     var parameters = List[AnyRef]()
     mainCtr.getParameterTypes.foreach( cls => parameters = parameters.::(getInstance[cls.type]()))
     mainCtr.newInstance(parameters).asInstanceOf[A]
@@ -49,5 +49,9 @@ class Injector extends Container {
 
   def buidUp[A](): A = {
     instanceCreator(classOf[A])
+  }
+
+  def validate(): Unit ={
+
   }
 }
