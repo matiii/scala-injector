@@ -9,7 +9,7 @@ trait ContainerRepository {
   private var tranistents = Map[Class[_], Class[_]]()
   private var lifetimes = Map[Class[_], LifeTime]()
 
-  def getSingleton[A](): Class[_] = {
-
-  }
+//  protected def getSingleton[A](): Class[_] = {
+//
+//  }
 }

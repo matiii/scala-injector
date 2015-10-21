@@ -10,7 +10,7 @@ class Injector extends Container with ConstructorGetter with ContainerRepository
   private var lifetimes = Map[Class[_], LifeTime]()
 
 
-  def getInstance[A](): A = {
+  override def getInstance[A](): A = {
     val _type = classOf[A]
     val lifetime = lifetimes.get(_type)
     if (!lifetime.isEmpty) throw new NoSuchElementException
@@ -27,7 +27,7 @@ class Injector extends Container with ConstructorGetter with ContainerRepository
     mainCtr.newInstance(parameters).asInstanceOf[A]
   }
 
-  def register[A, B <: A](lifeTime: LifeTime = Transistent): Unit = {
+  override def register[A, B <: A](lifeTime: LifeTime = Transistent): Unit = {
     lifeTime match {
       case Singleton =>
         lifetimes = lifetimes + (classOf[A] -> lifeTime)
@@ -39,19 +39,24 @@ class Injector extends Container with ConstructorGetter with ContainerRepository
   }
 
 
-  def registerDecorator[A, B <: A](lifeTime: LifeTime = Transistent, order: Int = 0): Unit = {
+  override def registerDecorator[A, B <: A](lifeTime: LifeTime = Transistent, order: Int = 0): Unit = {
 
   }
 
-  def register[A, B <: A](inject: () => B): Unit = {
+  override def register[A, B <: A](inject: () => B): Unit = {
 
   }
 
-  def buidUp[A](): A = {
+  //self
+  override def register[A](lifeTime: LifeTime = Transistent): Unit = {
+
+  }
+
+  override def buidUp[A](): A = {
     instanceCreator(classOf[A])
   }
 
-  def validate(): Unit ={
+  override def validate(): Unit ={
 
   }
 }

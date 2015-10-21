@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor
 //TODO to finish
 trait ConstructorGetter {
 
-  def getCtr(source: Class[_]): Constructor[_] = {
+  protected def getCtr(source: Class[_]): Constructor[_] = {
     source.getConstructors()(0)
   }
 
