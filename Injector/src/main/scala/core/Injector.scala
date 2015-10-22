@@ -5,6 +5,7 @@ package core
  */
 class Injector extends Container with ConstructorGetter with ContainerRepository {
 
+  private val factory = new FactoryInjector()
   private var singletons = Map[Class[_], Any]()
   private var tranistents = Map[Class[_], Class[_]]()
   private var lifetimes = Map[Class[_], LifeTime]()
@@ -21,11 +22,15 @@ class Injector extends Container with ConstructorGetter with ContainerRepository
 
   private def instanceCreator[A](tocreate: Class[A]): A = {
     val mainCtr = getCtr(tocreate)
-    var parameters = List[Any]()
-    mainCtr.getParameterTypes.foreach( cls => parameters = parameters.::(getInstance(cls)))
-    var instance: Any = Nil
-    if (parameters.isEmpty) instance = mainCtr.newInstance() else instance = mainCtr.newInstance(parameters)
-    instance.asInstanceOf[A]
+    val parameters = mainCtr.getParameterTypes
+    if (parameters.isEmpty)
+      mainCtr.newInstance().asInstanceOf[A]
+    else {
+      val paramatersArray = new Array[Object](parameters.length)
+      for(i <- 0 to parameters.length-1)
+        paramatersArray(i) = getInstance(parameters(i)).asInstanceOf[Object]
+      factory.getInstance[A](mainCtr, paramatersArray)
+    }
   }
 
   override def register[A, B <: A](sygnature: Class[A], target: Class[B], lifeTime: LifeTime): Unit = lifeTime match {
