@@ -10,53 +10,54 @@ class Injector extends Container with ConstructorGetter with ContainerRepository
   private var lifetimes = Map[Class[_], LifeTime]()
 
 
-  override def getInstance[A](): A = {
-    val _type = classOf[A]
-    val lifetime = lifetimes.get(_type)
+  override def getInstance[A](sygnature: Class[A]): A = {
+    val lifetime = lifetimes.get(sygnature)
     if (!lifetime.isEmpty) throw new NoSuchElementException
-    lifetime match {
-      case Singleton => singletons.get(_type).get.asInstanceOf[A]
-      case Transistent => instanceCreator[A](tranistents.get(_type).get.asInstanceOf[Class[A]])
+    lifetime.get match {
+      case Singleton => singletons.get(sygnature).get.asInstanceOf[A]
+      case Transistent => instanceCreator[A](tranistents.get(sygnature).get.asInstanceOf[Class[A]])
     }
   }
 
   private def instanceCreator[A](tocreate: Class[A]): A = {
     val mainCtr = getCtr(tocreate)
     var parameters = List[AnyRef]()
-    mainCtr.getParameterTypes.foreach( cls => parameters = parameters.::(getInstance[cls.type]()))
+    mainCtr.getParameterTypes.foreach( cls => parameters = parameters.::(getInstance(cls.getClass)))
     mainCtr.newInstance(parameters).asInstanceOf[A]
   }
 
-  override def register[A, B <: A](lifeTime: LifeTime = Transistent): Unit = {
-    lifeTime match {
+  override def register[A, B <: A](sygnature: Class[A], target: Class[B], lifeTime: LifeTime = Transistent): Unit = lifeTime match {
       case Singleton =>
-        lifetimes = lifetimes + (classOf[A] -> lifeTime)
-        singletons = singletons + (classOf[A] -> instanceCreator[B](classOf[B]))
+        lifetimes = lifetimes + (sygnature -> lifeTime)
+        singletons = singletons + (sygnature -> instanceCreator[B](target))
       case Transistent =>
-        lifetimes = lifetimes + (classOf[A] -> lifeTime)
-        tranistents = tranistents + (classOf[A] -> classOf[B])
-    }
+        lifetimes = lifetimes + (sygnature -> lifeTime)
+        tranistents = tranistents + (sygnature -> target)
   }
 
 
-  override def registerDecorator[A, B <: A](lifeTime: LifeTime = Transistent, order: Int = 0): Unit = {
+  override def registerDecorator[A, B <: A](sygnature: Class[A], target: Class[B], lifeTime: LifeTime = Transistent, order: Int = 0): Unit = {
 
   }
 
-  override def register[A, B <: A](inject: () => B): Unit = {
+  override def register[A, B <: A](sygnature: Class[A], inject: () => B, lifeTime: LifeTime = Transistent): Unit = {
 
   }
 
   //self
-  override def register[A](lifeTime: LifeTime = Transistent): Unit = {
+  override def register[A](target: Class[A], lifeTime: LifeTime = Transistent): Unit = {
 
   }
 
-  override def buidUp[A](): A = {
-    instanceCreator(classOf[A])
+  override def buildUp[A](target: Class[A]): A = {
+    instanceCreator(target)
   }
 
   override def validate(): Unit ={
+
+  }
+
+  override def setInterceptor(sygnature: Class[_], interceptor: Interceptor): Unit = {
 
   }
 }
